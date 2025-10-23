@@ -1,0 +1,20 @@
+from machine import ADC, Pin
+import time
+
+gas_sensor = ADC(26) 
+buzzer = Pin(15, Pin.OUT)
+led = Pin(14, Pin.OUT)  
+
+while True:
+    gas_value = gas_sensor.read_u16() 
+    print("Gas Level:", gas_value)
+    
+    if gas_value > 30000:  # (*adjust threshold based on testing)
+        print("LPG Gas Leak Detected!")
+        led.high()
+        buzzer.high()
+    else:
+        led.low()
+        buzzer.low()
+    
+    time.sleep(0.5)
