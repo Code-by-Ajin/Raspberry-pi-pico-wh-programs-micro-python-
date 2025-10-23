@@ -1,0 +1,13 @@
+from machine import ADC
+import utime
+
+ldr_pin = 28
+ldr_sensor = ADC(ldr_pin)
+
+while True:
+
+    ldr_value = ldr_sensor.read_u16() 
+
+    print("LDR Value:", ldr_value)
+
+    utime.sleep(0.5)
