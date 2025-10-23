@@ -1,0 +1,11 @@
+from machine import Pin
+import time
+
+ir = Pin(16, Pin.IN)
+
+while True:
+    if ir.value() == 0:
+        print("Object Detected!")
+    else:
+        print("No Object")
+    time.sleep(0.5)
