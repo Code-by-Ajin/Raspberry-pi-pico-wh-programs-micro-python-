@@ -1,0 +1,24 @@
+from machine import ADC
+import utime
+
+
+LDR_ADC_PIN = 26 
+ldr_sensor = ADC(LDR_ADC_PIN)
+
+MAX_ADC_VALUE = 65535 
+VREF = 3.3
+
+
+print("-" * 40)
+
+while True:
+
+    raw_value = ldr_sensor.read_u16() 
+    voltage = (raw_value / MAX_ADC_VALUE) * VREF
+
+    inverted_value = MAX_ADC_VALUE - raw_value
+    light_percentage = (inverted_value / MAX_ADC_VALUE) * 100
+    
+    print(f"Raw ADC: {raw_value: <5} | Voltage: {voltage:.2f}V | Light Level: {light_percentage:.1f}%")
+    
+    utime.sleep(0.5)
