@@ -1,0 +1,30 @@
+from machine import ADC, Pin
+import time
+
+TEMP_SENSOR_ADC_CHANNEL = 4 
+ALERT_LED_PIN = 0
+
+TEMPERATURE_THRESHOLD_C = 34.0 
+temp_sensor = ADC(TEMP_SENSOR_ADC_CHANNEL)
+alert_led = Pin(ALERT_LED_PIN, Pin.OUT)
+
+CONVERSION_FACTOR = 3.3 / 65535
+print(f"Starting Internal Temperature Monitor. Threshold: {TEMPERATURE_THRESHOLD_C}°C")
+
+try:
+    while True:
+        raw_adc_value = temp_sensor.read_u16()
+        voltage = raw_adc_value * CONVERSION_FACTOR
+        temperature_c = 27 - (voltage - 0.706) / 0.001721
+
+        print(f"Raw ADC: {raw_adc_value}, Voltage: {voltage:.3f}V, Temp: {temperature_c:.2f}°C")
+
+        if temperature_c > TEMPERATURE_THRESHOLD_C:
+            print("!!! HEAT ALERT !!! Temperature is above threshold.")
+            alert_led.value(1) 
+        else:
+            alert_led.value(0)
+        time.sleep(0.5) 
+except KeyboardInterrupt:
+    print("\nProgram stopped.")
+    alert_led.value(0) 
