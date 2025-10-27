@@ -1,0 +1,90 @@
+from machine import Pin, ADC
+import time
+
+TRIG_PIN = Pin(0, Pin.OUT)
+ECHO_PIN = Pin(1, Pin.IN)
+GREEN_LED = Pin(2, Pin.OUT)
+YELLOW_LED = Pin(3, Pin.OUT)
+RED_LED = Pin(4, Pin.OUT)
+BUZZER_PIN = Pin(5, Pin.OUT)
+
+# You can change the distance in your wish.
+DISTANCE_STOP_CM = 5
+DISTANCE_CAUTION_CM = 30
+DISTANCE_SAFE_CM = 50
+
+SOUND_SPEED_CM_US = 0.0343 / 2
+
+def measure_distance_cm():
+    TRIG_PIN.value(0)
+    time.sleep_us(2)
+    TRIG_PIN.value(1)
+    time.sleep_us(10)
+    TRIG_PIN.value(0)
+
+    pulse_start_time = time.ticks_us()
+    pulse_end_time = time.ticks_us()
+
+    timeout_start = time.ticks_us()
+    while ECHO_PIN.value() == 0:
+        pulse_start_time = time.ticks_us()
+        if time.ticks_diff(pulse_start_time, timeout_start) > 20000:
+            return -1
+
+    timeout_start = time.ticks_us()
+    while ECHO_PIN.value() == 1:
+        pulse_end_time = time.ticks_us()
+        if time.ticks_diff(pulse_end_time, timeout_start) > 20000:
+            return -1 
+
+    pulse_duration_us = time.ticks_diff(pulse_end_time, pulse_start_time)
+
+    distance_cm = pulse_duration_us * SOUND_SPEED_CM_US
+
+    if distance_cm > 400 or distance_cm < 0:
+        return -1
+    
+    return distance_cm
+
+def set_feedback_leds(green_on, yellow_on, red_on):
+    GREEN_LED.value(green_on)
+    YELLOW_LED.value(yellow_on)
+    RED_LED.value(red_on)
+
+def activate_buzzer(duration_ms=50):
+    BUZZER_PIN.value(1)
+    time.sleep_ms(duration_ms)
+    BUZZER_PIN.value(0)
+
+def all_off():
+    set_feedback_leds(0, 0, 0)
+    BUZZER_PIN.value(0)
+
+all_off()
+
+while True:
+    distance = measure_distance_cm()
+
+    if distance == -1:
+        print("Distance measurement failed or out of range.")
+        all_off()
+        time.sleep(0.1)
+        continue
+
+    print(f"Distance: {distance:.2f} cm")
+
+    if distance <= DISTANCE_STOP_CM:
+        set_feedback_leds(0, 0, 1)
+        activate_buzzer(50)
+        time.sleep(0.1)
+    elif distance <= DISTANCE_CAUTION_CM:
+        set_feedback_leds(0, 1, 0)
+        BUZZER_PIN.value(0)
+    elif distance <= DISTANCE_SAFE_CM:
+        set_feedback_leds(1, 0, 0)
+        BUZZER_PIN.value(0)
+    else:
+
+        all_off() 
+
+    time.sleep(0.1) 
