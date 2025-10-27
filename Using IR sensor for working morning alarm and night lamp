@@ -1,0 +1,57 @@
+from machine import Pin, ADC
+import time
+
+ldr_pin = ADC(Pin(26)) 
+ir_sensor_pin = Pin(16, Pin.IN)  
+buzzer_pin = Pin(2, Pin.OUT) 
+lamp_pin = Pin(0, Pin.OUT)
+
+light_threshold_high = 40000  
+light_threshold_low = 20000 
+ir_detection_threshold = 0 
+
+def read_ldr():
+    return ldr_pin.read_u16() 
+
+def is_object_detected():
+    return ir_sensor_pin.value() == ir_detection_threshold
+
+def activate_buzzer():
+    buzzer_pin.value(1)
+
+def deactivate_buzzer():
+    buzzer_pin.value(0)
+
+def activate_lamp():
+    lamp_pin.value(1)
+
+def deactivate_lamp():
+    lamp_pin.value(0)
+
+while True:
+    ldr_value = read_ldr()
+    object_detected = is_object_detected()
+
+    print(f"LDR Value: {ldr_value}, Object Detected: {object_detected}")
+
+    if ldr_value < light_threshold_high: 
+        print("Brightness is high enough for morning alarm.")
+        activate_buzzer()
+        if object_detected:
+            print("Object detected, turning off alarm.")
+            deactivate_buzzer()
+            time.sleep(5)
+    else:
+        deactivate_buzzer() 
+
+    if ldr_value > light_threshold_low: 
+        print("Brightness is low enough for night lamp.")
+        activate_lamp()
+        if object_detected:
+            print("Object detected, turning off night lamp.")
+            deactivate_lamp()
+            time.sleep(2) 
+    else:
+        deactivate_lamp()
+
+    time.sleep(0.5)
